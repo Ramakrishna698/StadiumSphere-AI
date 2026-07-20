@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { NavLink, Outlet, useLocation } from 'react-router';
+import { NavLink, Outlet, useLocation, useNavigate } from 'react-router';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
   Activity,
@@ -11,6 +11,7 @@ import {
   CircleHelp,
   Command,
   LayoutDashboard,
+  LogOut,
   Menu,
   Moon,
   Plus,
@@ -23,12 +24,12 @@ import {
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
+import { useAuth, useIsAdmin } from '@/contexts/auth-context';
 import { useTheme } from '@/contexts/theme-context';
 import { useToast } from '@/contexts/toast-context';
-import { applicationPages, getPage, routePaths } from '@/routes/route-definitions';
+import { getPage, getPagesForRole, routePaths } from '@/routes/route-definitions';
+import type { ApplicationPage } from '@/routes/route-definitions';
 
-const primaryNavigation = applicationPages.slice(0, 12);
-const supportNavigation = applicationPages.slice(12);
 const navigationIcons: Record<string, LucideIcon> = {
   Activity,
   'AI Assistant': Bot,
@@ -47,6 +48,9 @@ const navigationIcons: Record<string, LucideIcon> = {
 
 export function ApplicationShell() {
   const { pathname } = useLocation();
+  const { user, logout } = useAuth();
+  const isAdmin = useIsAdmin();
+  const navigate = useNavigate();
   const [collapsed, setCollapsed] = useState(false);
   const [mobileNavigationOpen, setMobileNavigationOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -55,6 +59,21 @@ export function ApplicationShell() {
   const page = getPage(pathname);
   const { show } = useToast();
 
+  const visiblePages = getPagesForRole(user?.role);
+  const primaryNavigation = visiblePages.filter((p) => p.path !== '/about' && p.path !== '/help');
+  const supportNavigation = visiblePages.filter((p) => p.path === '/about' || p.path === '/help');
+
+  const personaLabel = isAdmin ? 'Operations Manager' : 'Fan / Volunteer';
+  const userInitials = user?.email
+    ? user.email.slice(0, 2).toUpperCase()
+    : 'OP';
+
+  const handleLogout = async () => {
+    setProfileOpen(false);
+    await logout();
+    void navigate('/persona', { replace: true });
+  };
+
   useEffect(() => {
     setMobileNavigationOpen(false);
   }, [pathname]);
@@ -62,7 +81,7 @@ export function ApplicationShell() {
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 transition-colors duration-300 dark:bg-[#07111f] dark:text-slate-100">
       <AnimatePresence>{mobileNavigationOpen ? <motion.button initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} type="button" aria-label="Close navigation" onClick={() => setMobileNavigationOpen(false)} className="fixed inset-0 z-30 bg-slate-950/45 lg:hidden" /> : null}</AnimatePresence>
-      <Sidebar collapsed={collapsed} mobileOpen={mobileNavigationOpen} onCollapse={() => setCollapsed((value) => !value)} />
+      <Sidebar collapsed={collapsed} mobileOpen={mobileNavigationOpen} onCollapse={() => setCollapsed((value) => !value)} primaryNavigation={primaryNavigation} supportNavigation={supportNavigation} personaLabel={personaLabel} />
       <div className={`min-h-screen transition-[margin] duration-300 ${collapsed ? 'lg:ml-20' : 'lg:ml-72'}`}>
         <TopNavigation
           pageLabel={page.label}
@@ -72,6 +91,10 @@ export function ApplicationShell() {
           onProfile={() => setProfileOpen((value) => !value)}
           profileOpen={profileOpen}
           onToast={show}
+          userInitials={userInitials}
+          userEmail={user?.email}
+          personaLabel={personaLabel}
+          onLogout={handleLogout}
         />
         <main><Outlet /></main>
         <footer className="flex flex-col gap-2 border-t border-slate-200/80 px-6 py-5 text-xs text-slate-500 dark:border-white/10 dark:text-slate-400 sm:flex-row sm:items-center sm:justify-between lg:px-8">
@@ -86,7 +109,7 @@ export function ApplicationShell() {
   );
 }
 
-function Sidebar({ collapsed, mobileOpen, onCollapse }: { collapsed: boolean; mobileOpen: boolean; onCollapse(): void }) {
+function Sidebar({ collapsed, mobileOpen, onCollapse, primaryNavigation, supportNavigation, personaLabel }: { collapsed: boolean; mobileOpen: boolean; onCollapse(): void; primaryNavigation: readonly ApplicationPage[]; supportNavigation: readonly ApplicationPage[]; personaLabel: string }) {
   return (
     <motion.aside animate={mobileOpen ? { x: 0, width: collapsed ? 80 : 288 } : { width: collapsed ? 80 : 288 }} transition={{ duration: .24, ease: 'easeOut' }} className={`fixed inset-y-0 left-0 z-40 flex w-72 flex-col border-r border-slate-200/80 bg-white/96 p-4 backdrop-blur-md transition-transform duration-300 dark:border-white/10 dark:bg-[#0a1729]/96 lg:translate-x-0 ${mobileOpen ? 'translate-x-0' : '-translate-x-full'} ${collapsed ? 'lg:w-20' : 'lg:w-72'}`}>
       <div className="mb-7 flex items-center justify-between gap-3 px-2">
@@ -104,22 +127,22 @@ function Sidebar({ collapsed, mobileOpen, onCollapse }: { collapsed: boolean; mo
       </nav>
       <div className={`mt-4 rounded-xl border border-slate-200 bg-slate-50 p-3 dark:border-white/10 dark:bg-white/5 ${collapsed ? 'lg:hidden' : ''}`}>
         <p className="text-xs font-semibold text-slate-800 dark:text-slate-100">World Cup 2026</p>
-        <p className="mt-1 text-xs leading-5 text-slate-500 dark:text-slate-400">Operations workspace foundation</p>
+        <p className="mt-1 text-xs leading-5 text-slate-500 dark:text-slate-400">{personaLabel}</p>
       </div>
     </motion.aside>
   );
 }
 
-function NavigationLink({ item, collapsed }: { item: (typeof applicationPages)[number]; collapsed: boolean }) {
+function NavigationLink({ item, collapsed }: { item: ApplicationPage; collapsed: boolean }) {
   const Icon = navigationIcons[item.label] ?? Command;
   return <NavLink to={item.path} title={collapsed ? item.label : undefined} className={({ isActive }) => `focus-ring group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition ${isActive ? 'bg-cyan-500/12 font-medium text-cyan-700 dark:text-cyan-300' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-950 dark:text-slate-300 dark:hover:bg-white/8 dark:hover:text-white'} ${collapsed ? 'lg:justify-center lg:px-2' : ''}`}><Icon aria-hidden="true" size={17} strokeWidth={1.8} className="shrink-0" /><span className={collapsed ? 'lg:hidden' : ''}>{item.label}</span></NavLink>;
 }
 
-function TopNavigation({ pageLabel, onMenu, onSearch, onNotifications, onProfile, profileOpen, onToast }: { pageLabel: string; onMenu(): void; onSearch(): void; onNotifications(): void; onProfile(): void; profileOpen: boolean; onToast(message: string): void }) {
+function TopNavigation({ pageLabel, onMenu, onSearch, onNotifications, onProfile, profileOpen, onToast, userInitials, userEmail, personaLabel, onLogout }: { pageLabel: string; onMenu(): void; onSearch(): void; onNotifications(): void; onProfile(): void; profileOpen: boolean; onToast(message: string): void; userInitials: string; userEmail?: string; personaLabel: string; onLogout(): void }) {
   const { preference, setPreference } = useTheme();
   const nextTheme = preference === 'light' ? 'dark' : preference === 'dark' ? 'system' : 'light';
   const ThemeIcon = preference === 'dark' ? Moon : preference === 'light' ? Sun : Command;
-  return <header className="sticky top-0 z-20 flex h-16 items-center gap-3 border-b border-slate-200/80 bg-slate-50/80 px-4 backdrop-blur-xl dark:border-white/10 dark:bg-[#07111f]/80 sm:px-6 lg:px-8"><button type="button" aria-label="Open navigation" onClick={onMenu} className="focus-ring rounded-lg p-2 text-slate-600 hover:bg-slate-200/70 dark:text-slate-300 dark:hover:bg-white/10 lg:hidden"><Menu size={19} /></button><div className="min-w-0 flex-1"><p className="truncate text-sm font-semibold text-slate-950 dark:text-white">{pageLabel}</p><p className="hidden text-xs text-slate-500 sm:block">Workspace / Operations / {pageLabel}</p></div><button type="button" onClick={() => onToast('Workspace selector is ready for multi-workspace support.')} className="focus-ring hidden rounded-lg px-3 py-2 text-sm text-slate-600 hover:bg-slate-200/70 dark:text-slate-300 dark:hover:bg-white/10 md:block">Global Operations ⌄</button><button type="button" aria-label="Open global search" onClick={onSearch} className="focus-ring flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-500 shadow-sm hover:border-cyan-300 dark:border-white/10 dark:bg-white/5 dark:text-slate-300"><Search size={16} /><span className="hidden sm:inline">Search&nbsp;&nbsp;⌘K</span></button><button type="button" aria-label="Change theme" onClick={() => setPreference(nextTheme)} className="focus-ring rounded-lg p-2 text-slate-600 hover:bg-slate-200/70 dark:text-slate-300 dark:hover:bg-white/10"><ThemeIcon size={18} /></button><button type="button" aria-label="Open notifications" onClick={onNotifications} className="focus-ring relative rounded-lg p-2 text-slate-600 hover:bg-slate-200/70 dark:text-slate-300 dark:hover:bg-white/10"><Bell size={18} /><span className="absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-cyan-400" /></button><div className="relative"><button type="button" aria-label="Open profile menu" onClick={onProfile} className="focus-ring flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-cyan-500 text-xs font-bold text-white">OP</button>{profileOpen ? <div role="menu" className="absolute right-0 mt-2 w-48 rounded-xl border border-slate-200 bg-white p-1.5 shadow-xl dark:border-white/10 dark:bg-slate-900"><button type="button" role="menuitem" onClick={() => onToast('Profile settings are ready for the identity module.')} className="focus-ring w-full rounded-lg px-3 py-2 text-left text-sm hover:bg-slate-100 dark:hover:bg-white/10">Profile settings</button><NavLink to={routePaths.application.settings} role="menuitem" className="focus-ring block rounded-lg px-3 py-2 text-sm hover:bg-slate-100 dark:hover:bg-white/10">Workspace settings</NavLink></div> : null}</div></header>;
+  return <header className="sticky top-0 z-20 flex h-16 items-center gap-3 border-b border-slate-200/80 bg-slate-50/80 px-4 backdrop-blur-xl dark:border-white/10 dark:bg-[#07111f]/80 sm:px-6 lg:px-8"><button type="button" aria-label="Open navigation" onClick={onMenu} className="focus-ring rounded-lg p-2 text-slate-600 hover:bg-slate-200/70 dark:text-slate-300 dark:hover:bg-white/10 lg:hidden"><Menu size={19} /></button><div className="min-w-0 flex-1"><p className="truncate text-sm font-semibold text-slate-950 dark:text-white">{pageLabel}</p><p className="hidden text-xs text-slate-500 sm:block">{personaLabel} / {pageLabel}</p></div><button type="button" onClick={() => onToast('Workspace selector is ready for multi-workspace support.')} className="focus-ring hidden rounded-lg px-3 py-2 text-sm text-slate-600 hover:bg-slate-200/70 dark:text-slate-300 dark:hover:bg-white/10 md:block">Global Operations ⌄</button><button type="button" aria-label="Open global search" onClick={onSearch} className="focus-ring flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-500 shadow-sm hover:border-cyan-300 dark:border-white/10 dark:bg-white/5 dark:text-slate-300"><Search size={16} /><span className="hidden sm:inline">Search&nbsp;&nbsp;⌘K</span></button><button type="button" aria-label="Change theme" onClick={() => setPreference(nextTheme)} className="focus-ring rounded-lg p-2 text-slate-600 hover:bg-slate-200/70 dark:text-slate-300 dark:hover:bg-white/10"><ThemeIcon size={18} /></button><button type="button" aria-label="Open notifications" onClick={onNotifications} className="focus-ring relative rounded-lg p-2 text-slate-600 hover:bg-slate-200/70 dark:text-slate-300 dark:hover:bg-white/10"><Bell size={18} /><span className="absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-cyan-400" /></button><div className="relative"><button type="button" aria-label="Open profile menu" onClick={onProfile} className="focus-ring flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-cyan-500 text-xs font-bold text-white">{userInitials}</button>{profileOpen ? <div role="menu" className="absolute right-0 mt-2 w-56 rounded-xl border border-slate-200 bg-white p-1.5 shadow-xl dark:border-white/10 dark:bg-slate-900"><div className="px-3 py-2 text-xs text-slate-500 dark:text-slate-400">{userEmail ?? 'Operations User'}<br /><span className="font-semibold text-slate-700 dark:text-slate-200">{personaLabel}</span></div><div className="my-1 border-t border-slate-100 dark:border-white/10" /><NavLink to={routePaths.application.settings} role="menuitem" className="focus-ring block rounded-lg px-3 py-2 text-sm hover:bg-slate-100 dark:hover:bg-white/10">Workspace settings</NavLink><button type="button" role="menuitem" onClick={onLogout} className="focus-ring flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-rose-600 hover:bg-rose-50 dark:text-rose-400 dark:hover:bg-rose-400/10"><LogOut size={14} />Sign out</button></div> : null}</div></header>;
 }
 
 function SearchDialog({ open, onClose }: { open: boolean; onClose(): void }) {

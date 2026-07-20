@@ -1,6 +1,6 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { ConflictException, Inject, Injectable } from '@nestjs/common';
 
-import { Email, UniqueEntityId, User } from '../../domain';
+import { Email, UniqueEntityId, User, UserRole } from '../../domain';
 import type { UserProps } from '../../domain';
 import { InvalidCredentialsException } from '../exceptions/invalid-credentials.exception';
 import { InvalidRefreshTokenException } from '../exceptions/invalid-refresh-token.exception';
@@ -18,9 +18,21 @@ export interface LoginCommand {
   password: string;
 }
 
+export interface RegisterCommand {
+  email: string;
+  password: string;
+  role?: UserRole;
+}
+
 export interface AuthenticationTokens {
   readonly accessToken: string;
   readonly refreshToken: string;
+}
+
+export interface AuthenticatedUserInfo {
+  readonly email: string;
+  readonly role: UserRole;
+  readonly sub: string;
 }
 
 @Injectable()
@@ -43,6 +55,33 @@ export class AuthenticationApplicationService {
     }
 
     return this.issueTokens(user);
+  }
+
+  public async register(command: RegisterCommand): Promise<AuthenticationTokens> {
+    const existingUser = await this.userRepository.findByEmail(new Email(command.email));
+
+    if (existingUser !== null) {
+      throw new ConflictException('An account with this email already exists.');
+    }
+
+    const passwordHash = await this.passwordHasher.hash(command.password);
+    const role = command.role ?? UserRole.USER;
+    const user = await this.userRepository.create(
+      new User({ email: new Email(command.email), passwordHash, role }),
+    );
+
+    return this.issueTokens(user);
+  }
+
+  public async getProfile(userId: string): Promise<AuthenticatedUserInfo> {
+    const user = await this.userRepository.findById(new UniqueEntityId(userId));
+
+    if (user === null) {
+      throw new InvalidCredentialsException();
+    }
+
+    const userJson = user.toJSON();
+    return { email: userJson.email.value, role: user.role, sub: userJson.id };
   }
 
   public async logout(refreshToken: string): Promise<void> {
