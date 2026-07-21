@@ -26,7 +26,7 @@ describe('validateEnvironment', () => {
     expect(validateEnvironment(validEnvironment)).toMatchObject({
       MONGODB_DATABASE: 'stadiumsphere',
       MONGODB_URI: 'mongodb://localhost:27017',
-      GEMINI_MODEL: 'gemini-2.5-flash',
+      GEMINI_MODEL: 'gemini-2.0-flash',
       REDIS_HOST: 'localhost',
       REDIS_PORT: 6379,
     });

@@ -45,7 +45,7 @@ export const applicationPages: readonly ApplicationPage[] = [
   { description: 'Explore intelligence-ready operational signals.', icon: '↗', label: 'Analytics', path: routePaths.application.analytics, access: 'all' },
   { description: 'Review a unified stream of platform decisions.', icon: '◫', label: 'Activity', path: routePaths.application.activity, access: 'admin' },
   { description: 'Prepare your operations team for assisted decision-making.', icon: '✺', label: 'AI Assistant', path: routePaths.application.aiAssistant, access: 'all' },
-  { description: 'Tailor the StadiumSphere workspace to your operation.', icon: '⚙', label: 'Settings', path: routePaths.application.settings, access: 'admin' },
+  { description: 'Tailor the StadiumSphere workspace to your operation.', icon: '⚙', label: 'Settings', path: routePaths.application.settings, access: 'all' },
   { description: 'Find platform guidance and operational resources.', icon: '?', label: 'Help', path: routePaths.application.help, access: 'all' },
   { description: 'Learn about the StadiumSphere AI operations platform.', icon: 'i', label: 'About', path: routePaths.public.about, access: 'all' },
 ];

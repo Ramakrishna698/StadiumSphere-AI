@@ -21,7 +21,7 @@ const environmentSchema = z.object({
   JWT_REFRESH_SECRET: z.string().min(32),
   JWT_REFRESH_EXPIRES_IN: z.coerce.number().int().positive(),
   GEMINI_API_KEY: z.string().min(1).optional(),
-  GEMINI_MODEL: z.string().min(1).default('gemini-2.5-flash'),
+  GEMINI_MODEL: z.string().min(1).default('gemini-2.0-flash'),
   BCRYPT_SALT_ROUNDS: z.coerce.number().int().min(10).max(14),
   SWAGGER_ENABLED: z.enum(['true', 'false']).transform((value) => value === 'true'),
 });

@@ -300,34 +300,29 @@ function assistantErrorMessage(error: unknown): string {
       return 'Sign in is required to use the AI Assistant.';
     }
 
-    if (error.status === 503) {
-      return 'AI Assistant is currently unavailable.';
-    }
+    /* Show the actual Gemini error message from the backend */
+    return error.message;
   }
 
   return 'AI Assistant is currently unavailable. Please try again.';
 }
 
 const adminPrompts = [
-  'Summarize today\'s stadium operations across all venues',
-  'Predict crowd congestion for the next 2 hours',
-  'Recommend optimal volunteer deployment strategy',
-  'Generate multilingual emergency announcement',
-  'Suggest accessibility improvements for Gate C',
-  'Recommend transportation routing for post-match',
-  'Generate sustainability recommendations for energy usage',
-  'Identify top 3 operational risks right now',
-  'Generate executive summary for today\'s matchday',
-  'Recommend gate allocation for 75,000 attendees',
+  'Summarize today\'s stadium operations.',
+  'Predict crowd congestion.',
+  'Volunteer allocation.',
+  'Transportation risks.',
+  'Sustainability recommendations.',
+  'Executive operational summary.',
 ];
 
 const userPrompts = [
-  'Navigate me to my seat in Section 204',
-  'What matches are happening today?',
-  'Find accessible routes to Gate B',
-  'What are the transportation options after the match?',
-  'Translate "Where is the nearest exit?" to Spanish',
-  'What food options are near my section?',
+  'Guide me to Gate B.',
+  'How do I reach the stadium?',
+  'Nearby food and amenities.',
+  'Accessibility support.',
+  'Match schedule.',
+  'Transportation guidance.',
 ];
 
 export function AssistantPage() {

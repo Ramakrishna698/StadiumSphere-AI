@@ -17,6 +17,11 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     const request = context.getRequest<Request>();
     const statusCode =
       exception instanceof HttpException ? exception.getStatus() : HttpStatus.INTERNAL_SERVER_ERROR;
+
+    if (statusCode === HttpStatus.INTERNAL_SERVER_ERROR) {
+      console.error('[GlobalExceptionFilter] Unhandled exception:', exception);
+    }
+
     const responseBody: ErrorResponseBody = {
       correlationId: request.correlationId ?? 'unavailable',
       message: this.getMessage(exception),

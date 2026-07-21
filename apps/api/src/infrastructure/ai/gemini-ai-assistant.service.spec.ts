@@ -30,7 +30,7 @@ describe('GeminiAiAssistantService', () => {
     const service = new GeminiAiAssistantService(configuration as never);
 
     await expect(service.answer('Summarize operations.')).rejects.toThrow(
-      'AI Assistant is currently unavailable.',
+      'AI Assistant is not configured. Set GEMINI_API_KEY in your environment.',
     );
   });
 });
