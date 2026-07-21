@@ -11,17 +11,16 @@ import {
   Bot,
   BrainCircuit,
   Bus,
+  CalendarDays,
   CheckCircle2,
   CircleHelp,
   Clock3,
   Code2,
   FileText,
-  Gauge,
   Globe2,
   Layers3,
   Leaf,
   LifeBuoy,
-  Map,
   Megaphone,
   Navigation,
   Shield,
@@ -49,7 +48,7 @@ import {
   StatusBadge,
   Timeline,
 } from '@/components/design-system';
-import { useAuth, useIsAdmin } from '@/contexts/auth-context';
+import { useIsAdmin } from '@/contexts/auth-context';
 import { useToast } from '@/contexts/toast-context';
 import { routePaths } from '@/routes/route-definitions';
 import { ApiRequestError, apiRequest } from '@/services/api-client';
@@ -163,7 +162,6 @@ function InsightCard({ icon: Icon, label, detail, color }: { icon: typeof Users;
 
 function FanCompanionDashboard() {
   const { show } = useToast();
-  const health = useQuery({ queryKey: ['platform-health'], queryFn: () => apiRequest<HealthSnapshot>('/health'), retry: 1 });
 
   return (
     <WorkspacePage eyebrow="AI FIFA Companion" title="Your World Cup Experience" description="AI-powered stadium navigation, personalized recommendations, and live tournament updates for FIFA World Cup 2026.">

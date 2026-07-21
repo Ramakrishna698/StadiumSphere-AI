@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router';
 import {
@@ -16,7 +15,7 @@ import {
   Shield,
   ShieldCheck,
   Sparkles,
-  Stadium,
+  Building2,
   Ticket,
   Trophy,
   Users,
@@ -26,10 +25,10 @@ import {
 import { setStoredPersona } from '@/contexts/auth-context';
 
 const container = { hidden: {}, show: { transition: { staggerChildren: 0.08 } } };
-const card = { hidden: { opacity: 0, y: 30 }, show: { opacity: 1, y: 0, transition: { duration: 0.5, ease: 'easeOut' } } };
+const card = { hidden: { opacity: 0, y: 30 }, show: { opacity: 1, y: 0, transition: { duration: 0.5, ease: 'easeOut' as const } } };
 
 interface PersonaDefinition {
-  capabilities: readonly { icon: typeof Stadium; label: string }[];
+  capabilities: readonly { icon: typeof Building2; label: string }[];
   cta: string;
   description: string;
   emoji: string;
@@ -42,7 +41,7 @@ interface PersonaDefinition {
 const personas: readonly PersonaDefinition[] = [
   {
     capabilities: [
-      { icon: Stadium, label: 'Stadium Operations' },
+      { icon: Building2, label: 'Stadium Operations' },
       { icon: CalendarDays, label: 'Event Management' },
       { icon: Map, label: 'Venue Administration' },
       { icon: Users, label: 'Volunteer Coordination' },
@@ -86,7 +85,7 @@ const personas: readonly PersonaDefinition[] = [
 
 export function PersonaPage() {
   const navigate = useNavigate();
-  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+
 
   const selectPersona = (role: 'ADMIN' | 'USER') => {
     setStoredPersona(role);
@@ -135,13 +134,12 @@ export function PersonaPage() {
           animate="show"
           className="mt-12 grid gap-6 lg:grid-cols-2 lg:gap-8"
         >
-          {personas.map((persona, index) => (
+          {personas.map((persona) => (
             <motion.div key={persona.role} variants={card}>
               <button
                 type="button"
                 onClick={() => selectPersona(persona.role)}
-                onMouseEnter={() => setHoveredIndex(index)}
-                onMouseLeave={() => setHoveredIndex(null)}
+
                 className="focus-ring group relative w-full overflow-hidden rounded-3xl border border-white/[0.08] bg-white/[0.03] p-7 text-left backdrop-blur-xl transition-all duration-500 hover:border-white/[0.15] hover:bg-white/[0.06] sm:p-9"
               >
                 {/* Glow effect */}

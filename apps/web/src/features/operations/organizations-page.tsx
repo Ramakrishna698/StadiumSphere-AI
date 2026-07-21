@@ -2,6 +2,7 @@ import { Building2, Download, MoreHorizontal, Plus, Search, UsersRound } from 'l
 import { useMemo, useState } from 'react';
 
 import { ConfirmationDialog, GlassCard, MetricCard, PremiumButton } from '@/components/design-system';
+import { useIsAdmin } from '@/contexts/auth-context';
 import { useToast } from '@/contexts/toast-context';
 import type { OrganizationRecord } from '@/types/api';
 
@@ -20,6 +21,7 @@ export function OrganizationsPage() {
   const [query, setQuery] = useState('');
   const [selected, setSelected] = useState<OrganizationRecord | null>(null);
   const { show } = useToast();
+  const isAdmin = useIsAdmin();
   const filtered = useMemo(() => {
     const normalizedQuery = query.trim().toLocaleLowerCase();
     return (organizations.data ?? []).filter((organization) =>
@@ -52,7 +54,7 @@ export function OrganizationsPage() {
     });
   };
 
-  return <OperationsPage eyebrow="Enterprise command" icon={Building2} title="Organizations" description="Coordinate the organizations responsible for every matchday, venue, and operational decision." action={<div className="flex flex-wrap gap-2"><PremiumButton variant="outline" onClick={() => show('The organization export is being prepared for download.')}><Download size={16} />Export</PremiumButton><PremiumButton variant="secondary" onClick={() => setCreateOpen(true)}><Plus size={16} />New organization</PremiumButton></div>}>
+  return <OperationsPage eyebrow="Enterprise command" icon={Building2} title="Organizations" description="Coordinate the organizations responsible for every matchday, venue, and operational decision." action={isAdmin ? <div className="flex flex-wrap gap-2"><PremiumButton variant="outline" onClick={() => show('The organization export is being prepared for download.')}><Download size={16} />Export</PremiumButton><PremiumButton variant="secondary" onClick={() => setCreateOpen(true)}><Plus size={16} />New organization</PremiumButton></div> : undefined}>
     <DataState title="Organizations" isLoading={organizations.isLoading} error={organizations.error} onRetry={() => void organizations.refetch()}>
       <section className="grid gap-4 md:grid-cols-3"><MetricCard label="Connected organizations" value={String(organizations.data?.length ?? 0)} trend={{ positive: true, value: 'Live registry' }} /><MetricCard label="Executive workspaces" value={String(filtered.length)} trend={{ positive: true, value: 'In view' }} /><GlassCard className="p-5"><p className="ss-kicker text-slate-400">Management posture</p><p className="mt-3 text-xl font-semibold tracking-[-.03em]">Centralized</p><p className="mt-2 text-sm leading-6 text-slate-500 dark:text-slate-300">Each organization opens a focused profile without leaving the operational workspace.</p></GlassCard></section>
       <section className="ss-surface rounded-2xl"><div className="flex flex-col gap-4 border-b border-slate-200/80 p-5 dark:border-white/10 lg:flex-row lg:items-center lg:justify-between"><div><p className="ss-kicker text-slate-400">Organization directory</p><h2 className="mt-1 text-xl font-semibold tracking-[-.03em]">Executive workspace registry</h2></div><label className="relative w-full max-w-sm"><Search size={16} className="absolute left-3 top-3 text-slate-400" /><input value={query} onChange={(event) => setQuery(event.target.value)} aria-label="Search organizations" placeholder="Search organizations" className="focus-ring h-10 w-full rounded-xl border border-slate-200 bg-white/80 pl-9 pr-3 text-sm outline-none focus:border-cyan-300 dark:border-white/10 dark:bg-white/5" /></label></div>
@@ -60,7 +62,7 @@ export function OrganizationsPage() {
     </DataState>
     <ResourceFormDialog fields={organizationFields} open={createOpen} onClose={() => setCreateOpen(false)} onSubmit={create} submitting={organizations.create.isPending} title="Create organization" />
     <ResourceFormDialog fields={organizationFields} initialValues={selected === null ? {} : { name: safeText(selected.name) }} open={editOpen} onClose={() => setEditOpen(false)} onSubmit={update} submitting={organizations.update.isPending} submitLabel="Save changes" title="Edit organization" />
-    <ResourceDrawer open={selected !== null} onClose={() => setSelected(null)} title={selected === null ? 'Organization profile' : safeText(selected.name)}>{selected !== null ? <div className="space-y-6"><div className="rounded-2xl bg-gradient-to-br from-slate-900 to-slate-700 p-5 text-white dark:from-cyan-400 dark:to-blue-500 dark:text-slate-950"><p className="text-xs font-bold uppercase tracking-[.16em] opacity-70">Organization profile</p><p className="mt-3 text-2xl font-semibold tracking-[-.04em]">{safeText(selected.name)}</p><p className="mt-2 text-sm opacity-75">Enterprise operational headquarters</p></div><div className="grid gap-3"><PremiumButton variant="outline" onClick={() => setEditOpen(true)}>Edit organization</PremiumButton><PremiumButton variant="danger" onClick={() => setDeleteOpen(true)}>Delete organization</PremiumButton></div></div> : null}</ResourceDrawer>
+    <ResourceDrawer open={selected !== null} onClose={() => setSelected(null)} title={selected === null ? 'Organization profile' : safeText(selected.name)}>{selected !== null ? <div className="space-y-6"><div className="rounded-2xl bg-gradient-to-br from-slate-900 to-slate-700 p-5 text-white dark:from-cyan-400 dark:to-blue-500 dark:text-slate-950"><p className="text-xs font-bold uppercase tracking-[.16em] opacity-70">Organization profile</p><p className="mt-3 text-2xl font-semibold tracking-[-.04em]">{safeText(selected.name)}</p><p className="mt-2 text-sm opacity-75">Enterprise operational headquarters</p></div>{isAdmin ? <div className="grid gap-3"><PremiumButton variant="outline" onClick={() => setEditOpen(true)}>Edit organization</PremiumButton><PremiumButton variant="danger" onClick={() => setDeleteOpen(true)}>Delete organization</PremiumButton></div> : null}</div> : null}</ResourceDrawer>
     <ConfirmationDialog open={deleteOpen} onClose={() => setDeleteOpen(false)} onConfirm={remove} confirmLabel="Delete organization" title="Delete this organization?" description="This action removes the organization from the current workspace and cannot be undone." />
   </OperationsPage>;
 }

@@ -138,7 +138,7 @@ function NavigationLink({ item, collapsed }: { item: ApplicationPage; collapsed:
   return <NavLink to={item.path} title={collapsed ? item.label : undefined} className={({ isActive }) => `focus-ring group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition ${isActive ? 'bg-cyan-500/12 font-medium text-cyan-700 dark:text-cyan-300' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-950 dark:text-slate-300 dark:hover:bg-white/8 dark:hover:text-white'} ${collapsed ? 'lg:justify-center lg:px-2' : ''}`}><Icon aria-hidden="true" size={17} strokeWidth={1.8} className="shrink-0" /><span className={collapsed ? 'lg:hidden' : ''}>{item.label}</span></NavLink>;
 }
 
-function TopNavigation({ pageLabel, onMenu, onSearch, onNotifications, onProfile, profileOpen, onToast, userInitials, userEmail, personaLabel, onLogout }: { pageLabel: string; onMenu(): void; onSearch(): void; onNotifications(): void; onProfile(): void; profileOpen: boolean; onToast(message: string): void; userInitials: string; userEmail?: string; personaLabel: string; onLogout(): void }) {
+function TopNavigation({ pageLabel, onMenu, onSearch, onNotifications, onProfile, profileOpen, onToast, userInitials, userEmail, personaLabel, onLogout }: { pageLabel: string; onMenu(): void; onSearch(): void; onNotifications(): void; onProfile(): void; profileOpen: boolean; onToast(message: string): void; userInitials: string; userEmail?: string | undefined; personaLabel: string; onLogout(): void | Promise<void> }) {
   const { preference, setPreference } = useTheme();
   const nextTheme = preference === 'light' ? 'dark' : preference === 'dark' ? 'system' : 'light';
   const ThemeIcon = preference === 'dark' ? Moon : preference === 'light' ? Sun : Command;

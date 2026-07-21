@@ -32,6 +32,26 @@ describe('validateEnvironment', () => {
     });
   });
 
+  it('parses a single CORS_ORIGIN into an array', () => {
+    const result = validateEnvironment(validEnvironment);
+    expect(result.CORS_ORIGIN).toEqual(['http://localhost:5173']);
+  });
+
+  it('parses comma-separated CORS_ORIGIN into an array of validated URLs', () => {
+    const result = validateEnvironment({
+      ...validEnvironment,
+      CORS_ORIGIN: 'http://localhost:5173, http://localhost:5175',
+    });
+    expect(result.CORS_ORIGIN).toEqual(['http://localhost:5173', 'http://localhost:5175']);
+  });
+
+  it('rejects invalid URLs in CORS_ORIGIN', () => {
+    expect(() => validateEnvironment({
+      ...validEnvironment,
+      CORS_ORIGIN: 'not-a-url',
+    })).toThrow();
+  });
+
   it('rejects missing MongoDB and Redis configuration', () => {
     const invalidEnvironment: Record<string, string> = { ...validEnvironment };
     delete invalidEnvironment.MONGODB_URI;
@@ -40,3 +60,4 @@ describe('validateEnvironment', () => {
     expect(() => validateEnvironment(invalidEnvironment)).toThrow();
   });
 });
+

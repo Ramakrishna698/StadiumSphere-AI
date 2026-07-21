@@ -10,6 +10,6 @@ export class AssistantChatDto {
 }
 
 export class AssistantChatResponseDto {
-  @ApiProperty({ example: 'Today\'s operations are on track, with no venue conflicts detected.' })
+  @ApiProperty({ example: 'Today\'s operations are on track, with no venue conflicts detected.', type: String })
   public answer!: string;
 }

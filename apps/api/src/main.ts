@@ -19,7 +19,7 @@ async function bootstrap(): Promise<void> {
 
   application.useLogger(logger);
   application.use(helmet());
-  application.enableCors({ origin: configuration.getOrThrow('CORS_ORIGIN') });
+  application.enableCors({ credentials: true, origin: configuration.getOrThrow('CORS_ORIGIN') });
   application.setGlobalPrefix(configuration.getOrThrow('API_PREFIX'));
   application.useGlobalPipes(
     new ValidationPipe({

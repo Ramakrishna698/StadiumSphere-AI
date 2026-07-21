@@ -5,7 +5,9 @@ const environmentSchema = z.object({
   PORT: z.coerce.number().int().min(1).max(65_535),
   API_PREFIX: z.string().min(1),
   LOG_LEVEL: z.enum(['debug', 'info', 'warn', 'error']),
-  CORS_ORIGIN: z.string().url(),
+  CORS_ORIGIN: z.string().min(1).transform((value) =>
+    value.split(',').map((origin) => origin.trim()),
+  ).pipe(z.array(z.string().url()).min(1)),
   MONGODB_URI: z.string().url(),
   MONGODB_DATABASE: z.string().min(1),
   MONGODB_SERVER_SELECTION_TIMEOUT_MS: z.coerce.number().int().positive(),

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 import { motion } from 'framer-motion';
 import { ArrowLeft, Eye, EyeOff, Lock, Mail, ShieldCheck } from 'lucide-react';
 import type { FormEvent } from 'react';
@@ -9,7 +9,6 @@ import { useAuth, getStoredPersona } from '@/contexts/auth-context';
 export function LoginPage() {
   const { login } = useAuth();
   const navigate = useNavigate();
-  const location = useLocation();
   const persona = getStoredPersona();
   const personaLabel = persona === 'ADMIN' ? 'Tournament Operations Manager' : 'Fan / Volunteer';
 
