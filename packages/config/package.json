@@ -16,7 +16,7 @@
     "clean": "rimraf dist"
   },
   "dependencies": {
-    "zod": "^3.24.4"
+    "zod": "^4.6.5"
   },
   "devDependencies": {
     "@stadiumsphere/eslint-config": "workspace:*",
